@@ -1,15 +1,16 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-import openai
+from openai import OpenAI
 import json
 import os
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
 
 # Load environment variables from .env file
-load_dotenv()
+load_dotenv(find_dotenv(), override=False)
 
-# Set your OpenAI API key from the .env file
-openai.api_key = os.getenv("OPENAI_API_KEY")
+client = OpenAI(
+    api_key = os.environ["OPENAI_API_KEY"]
+)
 
 app = FastAPI()
 
@@ -42,17 +43,20 @@ class QueryRequest(BaseModel):
 
 # OpenAI GPT API call
 def get_openai_response(details, prompt: str):
+    print(details)
     try:
-        completion = openai.Completion.create(
-            model="text-davinci-003",  # Or you can use other models like `gpt-4` if available
-            messages=[
-                {"role": details['role'], "goal": details['goal'], "content": prompt['content']}
-            ],
-            max_tokens=1000
+        response = client.responses.create(
+            model="gpt-4o",  # Or you can use other models like `gpt-4` if available
+            instructions=f'{details['role']},{details['goal']},{details['backstory']}',
+            input=prompt
         )
-        return completion.choices[0].message
-    except openai.error.OpenAIError as e:
-        raise HTTPException(status_code=500, detail=f"Error from OpenAI: {e}")
+        print(response)
+        print("COMPLETION ABOVE")
+        print()
+        return response.output_text
+    except:
+        raise HTTPException(status_code=500, detail=f"Error from OpenAI")
+
 
 # Endpoint to create a new agent
 @app.post("/create_agent")
@@ -70,20 +74,16 @@ async def ask_agent(query: QueryRequest):
     agent = agents.get(query.agent_id)
     
     if not agent:
-        raise HTTPException(status_code=404, detail="Agent not found")
+        raise HTTPException(status_code=505, detail="Agent not found")
     
     agent_details = {
         "role": agent["role"],
-        "goal": agent["goal"]
+        "goal": agent["goal"],
+        "backstory": agent['backstory']
     }
-    # Construct the prompt using agent's information and user's question
-    prompt = ""
-    if agent['backstory']:
-        prompt += f"Backstory: {agent['backstory']}\n"
-    prompt += f"User's Question: {query.question}"
 
     # Query OpenAI API for the response
-    answer = get_openai_response(agent_details, prompt)
+    answer = get_openai_response(agent_details, query.question)
     
     return {"answer": answer}
 

@@ -52,8 +52,18 @@ const CreateAgentForm: React.FC<CreateAgentFormProps> = ({ onSuccess }) => {
     },
   });
 
-  const onSubmit = (data: FormData) => {
+  const onSubmit = async (data: FormData) => {
+    const resp = await fetch("http://localhost:8000/create_agent", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    if (!resp.ok) { console.log( "response not oke "); return; }
+
+    const {agent_id } = await resp.json();
+
     const newAgent = addAgent({
+      id: agent_id,
       name: data.name,
       role: data.role,
       goal: data.goal,

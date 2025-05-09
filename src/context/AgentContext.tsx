@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from "uuid";
 interface AgentContextType {
   agents: Agent[];
   conversations: Record<string, Conversation>;
-  addAgent: (agent: Omit<Agent, "id" | "createdAt" | "avatarColor" | "lastInteractedAt">) => void;
+  addAgent: (agent: Omit<Agent, "createdAt" | "avatarColor" | "lastInteractedAt">) => Agent;
   deleteAgent: (id: string) => void;
   getConversation: (agentId: string) => Conversation;
   addMessage: (agentId: string, content: string, sender: 'user' | 'agent') => void;
@@ -26,6 +26,7 @@ const AVATAR_COLORS = [
   "#06b6d4", // cyan
   "#3b82f6", // blue
 ];
+
 
 export const AgentProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [agents, setAgents] = useState<Agent[]>([]);
@@ -88,11 +89,10 @@ export const AgentProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     localStorage.setItem("conversations", JSON.stringify(conversations));
   }, [conversations]);
 
-  const addAgent = (agentData: Omit<Agent, "id" | "createdAt" | "avatarColor" | "lastInteractedAt">) => {
+  const addAgent = (agentData: Omit<Agent, "createdAt" | "avatarColor" | "lastInteractedAt">) => {
     const now = new Date();
     const newAgent: Agent = {
       ...agentData,
-      id: uuidv4(),
       createdAt: now,
       lastInteractedAt: now, // Initialize with creation time
       // Randomly select a color from the list

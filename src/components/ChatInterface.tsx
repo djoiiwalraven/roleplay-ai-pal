@@ -59,11 +59,13 @@ const ChatInterface: React.FC = () => {
       return;
     }
     
+    console.log(agentId)
+
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 2 * 60 * 1000);
 
     try {
-      const response = await fetch('/ask_agent', {
+      const response = await fetch('http://localhost:8000/ask_agent', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -74,6 +76,7 @@ const ChatInterface: React.FC = () => {
         }),
         signal: controller.signal
       });
+
       clearTimeout(timeoutId)
 
       if (!response.ok) {
@@ -82,7 +85,8 @@ const ChatInterface: React.FC = () => {
       }
 
       const data = await response.json();
-      const agentAnswer = data.answer()
+      console.log(data)
+      const agentAnswer = data.answer
       addMessage(agentId, agentAnswer, 'agent');
     } catch (error){
       if (error.name === 'AbortError') {
