@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from "react";
 import { useAgents } from "../context/AgentContext";
 import { useParams, useNavigate } from "react-router-dom";
@@ -11,7 +10,7 @@ import AgentAvatar from "./AgentAvatar";
 
 const ChatInterface: React.FC = () => {
   const { agentId } = useParams<{ agentId: string }>();
-  const { agents, getConversation, addMessage } = useAgents();
+  const { agents, getConversation, addMessage, updateAgentInteraction } = useAgents();
   const [message, setMessage] = useState("");
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -24,6 +23,13 @@ const ChatInterface: React.FC = () => {
   // Get the conversation for this agent
   const conversation = agentId ? getConversation(agentId) : null;
   const messages = conversation?.messages || [];
+
+  // Update agent interaction time when opening the chat
+  useEffect(() => {
+    if (agentId) {
+      updateAgentInteraction(agentId);
+    }
+  }, [agentId, updateAgentInteraction]);
 
   // Scroll to bottom when messages change
   useEffect(() => {

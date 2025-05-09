@@ -7,6 +7,7 @@ export interface Agent {
   backstory?: string;
   avatarColor: string;
   createdAt: Date;
+  lastInteractedAt: Date; // Added this field to track last interaction time
 }
 
 export interface Message {

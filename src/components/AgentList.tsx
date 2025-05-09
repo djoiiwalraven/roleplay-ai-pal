@@ -30,7 +30,7 @@ const AgentList: React.FC = () => {
           </div>
         ) : (
           agents
-            .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+            .sort((a, b) => b.lastInteractedAt.getTime() - a.lastInteractedAt.getTime())
             .map((agent) => (
               <AgentListItem 
                 key={agent.id} 

@@ -62,10 +62,8 @@ const CreateAgentForm: React.FC<CreateAgentFormProps> = ({ onSuccess }) => {
     
     if (onSuccess) onSuccess();
     
-    // Only navigate if newAgent has an id
-    if (newAgent && typeof newAgent === 'object' && 'id' in newAgent) {
-      navigate(`/chat/${newAgent.id}`);
-    }
+    // Navigate to the chat with the new agent
+    navigate(`/chat/${newAgent.id}`);
   };
 
   return (

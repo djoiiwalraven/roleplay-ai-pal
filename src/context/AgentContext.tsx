@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { Agent, Conversation } from "../types/agent";
 import { toast } from "sonner";
@@ -7,10 +6,11 @@ import { v4 as uuidv4 } from "uuid";
 interface AgentContextType {
   agents: Agent[];
   conversations: Record<string, Conversation>;
-  addAgent: (agent: Omit<Agent, "id" | "createdAt" | "avatarColor">) => void;
+  addAgent: (agent: Omit<Agent, "id" | "createdAt" | "avatarColor" | "lastInteractedAt">) => void;
   deleteAgent: (id: string) => void;
   getConversation: (agentId: string) => Conversation;
   addMessage: (agentId: string, content: string, sender: 'user' | 'agent') => void;
+  updateAgentInteraction: (agentId: string) => void;
 }
 
 const AgentContext = createContext<AgentContextType | undefined>(undefined);
@@ -42,7 +42,8 @@ export const AgentProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         // Convert string dates back to Date objects
         const agentsWithDates = parsedAgents.map((agent: any) => ({
           ...agent,
-          createdAt: new Date(agent.createdAt)
+          createdAt: new Date(agent.createdAt),
+          lastInteractedAt: agent.lastInteractedAt ? new Date(agent.lastInteractedAt) : new Date(agent.createdAt)
         }));
         setAgents(agentsWithDates);
       } catch (error) {
@@ -78,21 +79,22 @@ export const AgentProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   }, []);
 
-  // Save agents to localStorage whenever they change
+  // Save agents and conversations to localStorage whenever they change
   useEffect(() => {
     localStorage.setItem("agents", JSON.stringify(agents));
   }, [agents]);
 
-  // Save conversations to localStorage whenever they change
   useEffect(() => {
     localStorage.setItem("conversations", JSON.stringify(conversations));
   }, [conversations]);
 
-  const addAgent = (agentData: Omit<Agent, "id" | "createdAt" | "avatarColor">) => {
+  const addAgent = (agentData: Omit<Agent, "id" | "createdAt" | "avatarColor" | "lastInteractedAt">) => {
+    const now = new Date();
     const newAgent: Agent = {
       ...agentData,
       id: uuidv4(),
-      createdAt: new Date(),
+      createdAt: now,
+      lastInteractedAt: now, // Initialize with creation time
       // Randomly select a color from the list
       avatarColor: AVATAR_COLORS[Math.floor(Math.random() * AVATAR_COLORS.length)]
     };
@@ -104,7 +106,7 @@ export const AgentProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       id: uuidv4(),
       agentId: newAgent.id,
       messages: [],
-      lastUpdated: new Date()
+      lastUpdated: now
     };
     
     setConversations((prev) => ({
@@ -150,6 +152,17 @@ export const AgentProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return conversations[agentId];
   };
 
+  // New function to update the lastInteractedAt timestamp of an agent
+  const updateAgentInteraction = (agentId: string) => {
+    setAgents((prev) => 
+      prev.map((agent) => 
+        agent.id === agentId 
+          ? { ...agent, lastInteractedAt: new Date() } 
+          : agent
+      )
+    );
+  };
+
   const addMessage = (agentId: string, content: string, sender: 'user' | 'agent') => {
     const message = {
       id: uuidv4(),
@@ -175,6 +188,9 @@ export const AgentProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         }
       };
     });
+
+    // Update the agent's last interaction time when adding a message
+    updateAgentInteraction(agentId);
   };
 
   return (
@@ -185,7 +201,8 @@ export const AgentProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         addAgent, 
         deleteAgent,
         getConversation,
-        addMessage
+        addMessage,
+        updateAgentInteraction
       }}
     >
       {children}
