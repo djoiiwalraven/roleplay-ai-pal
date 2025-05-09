@@ -28,7 +28,7 @@ import { Button } from "@/components/ui/button";
 const formSchema = z.object({
   name: z.string().min(1, "Name is required").max(50, "Name is too long"),
   role: z.string().min(1, "Role is required").max(50, "Role is too long"),
-  goal: z.string().min(1, "Goal is required").max(500, "Goal is too long"), // Increased max length
+  goal: z.string().min(1, "Goal is required").max(500, "Goal is too long"),
   backstory: z.string().max(500, "Backstory is too long").optional(),
 });
 
@@ -62,8 +62,10 @@ const CreateAgentForm: React.FC<CreateAgentFormProps> = ({ onSuccess }) => {
     
     if (onSuccess) onSuccess();
     
-    // Navigate to the chat with the new agent
-    navigate(`/chat/${newAgent.id}`);
+    // Only navigate if newAgent has an id
+    if (newAgent && typeof newAgent === 'object' && 'id' in newAgent) {
+      navigate(`/chat/${newAgent.id}`);
+    }
   };
 
   return (

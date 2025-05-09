@@ -17,7 +17,7 @@ const AgentList: React.FC = () => {
     <div className="flex flex-col h-full bg-white border-r">
       {/* Header */}
       <div className="p-4 border-b">
-        <h2 className="text-xl font-semibold">My Agents</h2>
+        <h2 className="text-xl font-semibold">TheAgenticOffice</h2>
       </div>
 
       {/* Agent List */}
