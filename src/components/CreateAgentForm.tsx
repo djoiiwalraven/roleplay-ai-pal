@@ -53,7 +53,6 @@ const CreateAgentForm: React.FC<CreateAgentFormProps> = ({ onSuccess }) => {
   });
 
   const onSubmit = (data: FormData) => {
-    // Ensure all required fields are provided to addAgent
     const newAgent = addAgent({
       name: data.name,
       role: data.role,
@@ -62,10 +61,9 @@ const CreateAgentForm: React.FC<CreateAgentFormProps> = ({ onSuccess }) => {
     });
     
     if (onSuccess) onSuccess();
-    // Only navigate if addAgent returns an object with an id
-    if (newAgent && newAgent.id) {
-      navigate(`/chat/${newAgent.id}`);
-    }
+    
+    // Navigate to the chat with the new agent
+    navigate(`/chat/${newAgent.id}`);
   };
 
   return (
