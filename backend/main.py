@@ -23,7 +23,7 @@ origins = [
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,       # or ["*"] while debugging
+    allow_origins=["*"],       # or ["*"] while debugging
     allow_credentials=True,
     allow_methods=["*"],         # "OPTIONS" will be handled automatically
     allow_headers=["*"],         # needed for JSON
