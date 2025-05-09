@@ -1,12 +1,34 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import React, { useEffect } from "react";
+import { useAgents } from "../context/AgentContext";
+import { useNavigate } from "react-router-dom";
+import WelcomePage from "./WelcomePage";
+import CreateAgentFab from "@/components/CreateAgentFab";
 
 const Index = () => {
+  const { agents } = useAgents();
+  const navigate = useNavigate();
+
+  // If there are agents, we'll redirect to the first one
+  useEffect(() => {
+    if (agents.length > 0) {
+      // No need to redirect - the layout will handle showing the agents list
+    } else {
+      // No need to redirect - the layout will show the welcome page
+    }
+  }, [agents, navigate]);
+
+  if (agents.length === 0) {
+    return <WelcomePage />;
+  }
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+    <div className="flex items-center justify-center h-full bg-gray-50">
       <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
+        <h2 className="text-xl font-semibold mb-2">Select an Agent</h2>
+        <p className="text-gray-500">Choose an agent from the list to start chatting</p>
       </div>
+      <CreateAgentFab />
     </div>
   );
 };
