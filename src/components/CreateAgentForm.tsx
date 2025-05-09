@@ -53,7 +53,14 @@ const CreateAgentForm: React.FC<CreateAgentFormProps> = ({ onSuccess }) => {
   });
 
   const onSubmit = (data: FormData) => {
-    const newAgent = addAgent(data);
+    // Ensure all required fields are provided to addAgent
+    const newAgent = addAgent({
+      name: data.name,
+      role: data.role,
+      goal: data.goal,
+      backstory: data.backstory || undefined,
+    });
+    
     if (onSuccess) onSuccess();
     navigate(`/chat/${newAgent.id}`);
   };
