@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+from dotenv import load_dotenv
 import requests
 import json
 import os
@@ -8,10 +9,9 @@ app = FastAPI()
 
 # Paths for agents data and the API keys
 AGENTS_FILE = 'agents.json'
-OPENAI_API_KEY = 'your_openai_api_key_here'
-ANTHROPIC_API_KEY = 'your_anthropic_api_key_here'
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 OPENAI_API_URL = "https://api.openai.com/v1/chat/completions"
-ANTHROPIC_API_URL = "https://api.anthropic.com/v1/completions"
+
 
 # Load agents from JSON file
 def load_agents():
