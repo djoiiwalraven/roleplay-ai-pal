@@ -45,26 +45,54 @@ const ChatInterface: React.FC = () => {
     }
   }, [agentId]);
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!message.trim() || !agentId) return;
     
     // Add user message
     addMessage(agentId, message.trim(), 'user');
     setMessage("");
+
+    const agent = agents.find((a) => a.id === agentId);
+    if (!agent) {
+      addMessage(agentId, "Error: Agent not found.", 'agent');
+      return;
+    }
     
-    // Simulate agent response after a short delay
-    setTimeout(() => {
-      if (agent) {
-        // This is where you would connect to an actual LLM API
-        // For now we'll just mock a response
-        addMessage(
-          agentId, 
-          `This is a simulated response from ${agent.name}, the ${agent.role}. In the future, this would be connected to an actual LLM like OpenAI or Anthropic.`, 
-          'agent'
-        );
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 2 * 60 * 1000);
+
+    try {
+      const response = await fetch('/ask_agent', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          agent_id: agentId,
+          question: message.trim()
+        }),
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId)
+
+      if (!response.ok) {
+        addMessage(agentId, "Error unable to get a response..", 'agent');
+        return;
       }
-    }, 1000);
+
+      const data = await response.json();
+      const agentAnswer = data.answer()
+      addMessage(agentId, agentAnswer, 'agent');
+    } catch (error){
+      if (error.name === 'AbortError') {
+        // If request is aborted due to timeout
+        addMessage(agentId, "Error: The request took too long to respond.", 'agent');
+      } else {
+        // If some other error occurs
+        addMessage(agentId, "Error: An error occurred while communicating with the agent.", 'agent');
+      }
+    }
   };
 
   // If agent not found, show a message

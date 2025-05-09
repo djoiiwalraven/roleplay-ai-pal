@@ -3,4 +3,4 @@ requests
 fastapi
 uvicorn
 openai
-anthropic
+python-dotenv

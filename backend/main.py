@@ -1,17 +1,20 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from dotenv import load_dotenv
-import requests
+import openai
 import json
 import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+
+# Set your OpenAI API key from the .env file
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 app = FastAPI()
 
-# Paths for agents data and the API keys
+# Path for storing agents data
 AGENTS_FILE = 'agents.json'
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-OPENAI_API_URL = "https://api.openai.com/v1/chat/completions"
-
 
 # Load agents from JSON file
 def load_agents():
@@ -38,38 +41,18 @@ class QueryRequest(BaseModel):
     question: str
 
 # OpenAI GPT API call
-def get_openai_response(prompt: str):
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {OPENAI_API_KEY}",
-    }
-    payload = {
-        "model": "gpt-4",
-        "messages": [{"role": "user", "content": prompt}],
-        "max_tokens": 1000,
-    }
-    response = requests.post(OPENAI_API_URL, json=payload, headers=headers)
-    if response.status_code == 200:
-        return response.json()["choices"][0]["message"]["content"]
-    else:
-        raise HTTPException(status_code=response.status_code, detail="Error from OpenAI API")
-
-# Anthropic API call
-def get_anthropic_response(prompt: str):
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {ANTHROPIC_API_KEY}",
-    }
-    payload = {
-        "model": "claude-3",  # Replace with the correct model name
-        "prompt": prompt,
-        "max_tokens_to_sample": 1000,
-    }
-    response = requests.post(ANTHROPIC_API_URL, json=payload, headers=headers)
-    if response.status_code == 200:
-        return response.json()["completion"]
-    else:
-        raise HTTPException(status_code=response.status_code, detail="Error from Anthropic API")
+def get_openai_response(details, prompt: str):
+    try:
+        completion = openai.Completion.create(
+            model="text-davinci-003",  # Or you can use other models like `gpt-4` if available
+            messages=[
+                {"role": details['role'], "goal": details['goal'], "content": prompt['content']}
+            ],
+            max_tokens=1000
+        )
+        return completion.choices[0].message
+    except openai.error.OpenAIError as e:
+        raise HTTPException(status_code=500, detail=f"Error from OpenAI: {e}")
 
 # Endpoint to create a new agent
 @app.post("/create_agent")
@@ -89,20 +72,18 @@ async def ask_agent(query: QueryRequest):
     if not agent:
         raise HTTPException(status_code=404, detail="Agent not found")
     
+    agent_details = {
+        "role": agent["role"],
+        "goal": agent["goal"]
+    }
     # Construct the prompt using agent's information and user's question
-    prompt = f"Agent Name: {agent['name']}\nRole: {agent['role']}\nGoal: {agent['goal']}\n"
+    prompt = ""
     if agent['backstory']:
         prompt += f"Backstory: {agent['backstory']}\n"
     prompt += f"User's Question: {query.question}"
 
-    # Query OpenAI or Anthropic (can switch between them based on your preference)
-    try:
-        # For OpenAI
-        answer = get_openai_response(prompt)
-        # Uncomment the line below for Anthropic
-        # answer = get_anthropic_response(prompt)
-    except HTTPException as e:
-        raise HTTPException(status_code=e.status_code, detail=e.detail)
+    # Query OpenAI API for the response
+    answer = get_openai_response(agent_details, prompt)
     
     return {"answer": answer}
 
