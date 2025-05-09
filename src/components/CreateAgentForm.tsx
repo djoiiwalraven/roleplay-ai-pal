@@ -53,7 +53,7 @@ const CreateAgentForm: React.FC<CreateAgentFormProps> = ({ onSuccess }) => {
   });
 
   const onSubmit = async (data: FormData) => {
-    const resp = await fetch("http://localhost:8000/create_agent", {
+    const resp = await fetch("http://backend:8000/create_agent", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
