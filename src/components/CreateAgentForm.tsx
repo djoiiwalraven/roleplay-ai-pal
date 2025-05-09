@@ -28,7 +28,7 @@ import { Button } from "@/components/ui/button";
 const formSchema = z.object({
   name: z.string().min(1, "Name is required").max(50, "Name is too long"),
   role: z.string().min(1, "Role is required").max(50, "Role is too long"),
-  goal: z.string().min(1, "Goal is required").max(200, "Goal is too long"),
+  goal: z.string().min(1, "Goal is required").max(500, "Goal is too long"), // Increased max length
   backstory: z.string().max(500, "Backstory is too long").optional(),
 });
 
@@ -62,7 +62,10 @@ const CreateAgentForm: React.FC<CreateAgentFormProps> = ({ onSuccess }) => {
     });
     
     if (onSuccess) onSuccess();
-    navigate(`/chat/${newAgent.id}`);
+    // Only navigate if addAgent returns an object with an id
+    if (newAgent && newAgent.id) {
+      navigate(`/chat/${newAgent.id}`);
+    }
   };
 
   return (
@@ -114,7 +117,11 @@ const CreateAgentForm: React.FC<CreateAgentFormProps> = ({ onSuccess }) => {
               <FormItem>
                 <FormLabel>Goal</FormLabel>
                 <FormControl>
-                  <Input placeholder="e.g., Help create marketing strategies" {...field} />
+                  <Textarea
+                    placeholder="e.g., Help create marketing strategies tailored to specific products and audience segments..."
+                    {...field}
+                    rows={4}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
