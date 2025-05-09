@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from openai import OpenAI
 import json
@@ -13,6 +14,20 @@ client = OpenAI(
 )
 
 app = FastAPI()
+
+origins = [
+    "http://localhost:3000",                 # local dev
+    "http://localhost:8000",  
+    "https://agenticoffice.onrender.com/",    # Render static site URL
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,       # or ["*"] while debugging
+    allow_credentials=True,
+    allow_methods=["*"],         # "OPTIONS" will be handled automatically
+    allow_headers=["*"],         # needed for JSON
+)
 
 # Path for storing agents data
 AGENTS_FILE = 'agents.json'
