@@ -65,7 +65,7 @@ const ChatInterface: React.FC = () => {
     const timeoutId = setTimeout(() => controller.abort(), 2 * 60 * 1000);
 
     try {
-      const response = await fetch('http://backend:8000/ask_agent', {
+      const response = await fetch('https://backend:8000/ask_agent', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
